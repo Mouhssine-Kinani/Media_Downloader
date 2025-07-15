@@ -18,51 +18,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/downloads", express.static(path.join(__dirname, "downloads")));
 
 // --- Video deletion logic ---
-const videoTimers = new Map(); // filename -> { timer, downloaded }
-const DELETE_AFTER_MS = 3 * 60 * 1000; // 3 minutes
-const downloadsDir = path.join(__dirname, "downloads");
-
-function scheduleDeletion(filename) {
-  if (videoTimers.has(filename)) return;
-  const timer = setTimeout(() => {
-    const filePath = path.join(downloadsDir, filename);
-    if (fs.existsSync(filePath) && !videoTimers.get(filename)?.downloaded) {
-      fs.unlink(filePath, (err) => {
-        if (!err) {
-          console.log(`Deleted ${filename} after 3 minutes (not downloaded)`);
-        }
-      });
-    }
-    videoTimers.delete(filename);
-  }, DELETE_AFTER_MS);
-  videoTimers.set(filename, { timer, downloaded: false });
-}
-
-function markDownloaded(filename) {
-  const entry = videoTimers.get(filename);
-  if (entry) {
-    entry.downloaded = true;
-    clearTimeout(entry.timer);
-    videoTimers.delete(filename);
-  }
-}
-
-// Schedule deletion for all existing files on startup
-fs.readdir(downloadsDir, (err, files) => {
-  if (!err) {
-    files.filter(f => f.endsWith('.mp4')).forEach(scheduleDeletion);
-  }
-});
-
-// Watch for new files
-fs.watch(downloadsDir, (eventType, filename) => {
-  if (filename && filename.endsWith('.mp4') && eventType === 'rename') {
-    // File created
-    if (fs.existsSync(path.join(downloadsDir, filename))) {
-      scheduleDeletion(filename);
-    }
-  }
-});
+// (Removed: videoTimers, DELETE_AFTER_MS, scheduleDeletion, markDownloaded, fs.readdir, fs.watch)
 
 // --- Download endpoint for client ---
 app.get("/downloads/:filename", (req, res) => {
@@ -70,12 +26,6 @@ app.get("/downloads/:filename", (req, res) => {
   const filePath = path.join(downloadsDir, filename);
   if (!fs.existsSync(filePath)) {
     return res.status(404).send("File not found");
-  }
-  // Clear timer and mark as downloaded
-  const entry = videoTimers.get(filename);
-  if (entry) {
-    clearTimeout(entry.timer);
-    videoTimers.delete(filename);
   }
   res.download(filePath, filename, (err) => {
     if (err) {

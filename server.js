@@ -8,6 +8,7 @@ import { stderr, stdout } from "process";
 import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
+import { spawn } from 'child_process';
 dotenv.config();
 
 // Define __dirname for ES module
@@ -83,7 +84,6 @@ app.post("/download", downloadLimiter, (req, res) => {
   const filePath = path.join(downloadsDir, filename);
 
   // Use yt-dlp as an array to avoid shell interpolation
-  const { spawn } = require('child_process');
   const ytDlp = spawn('yt-dlp', ['-o', filePath, url]);
 
   ytDlp.on('error', (err) => {

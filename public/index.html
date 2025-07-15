@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Media Downloader</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html" class="nav-link" id="home-link">Home</a>
+    </nav>
+  </header>
+  <h1>Media Downloader</h1>
+  <input type="text" id="urlInput" placeholder="Enter media URL" />
+  <button onclick="download()">Download</button>
+
+  <script src="app.js"></script>
+  <script>
+    // Highlight current page in nav
+    const path = window.location.pathname;
+    if (path.endsWith('index.html') || path === '/' || path === '/public/') {
+      document.getElementById('home-link')?.classList.add('active');
+    } else if (path.endsWith('downloads.html')) {
+      document.getElementById('downloads-link')?.classList.add('active');
+    }
+  </script>
+</body>
+</html>
